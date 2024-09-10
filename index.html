@@ -273,7 +273,7 @@
       return playfield[0].some(value => value);
     }
 
-    function startGame() {
+function startGame() {
   if (gameInterval) {
     cancelAnimationFrame(gameInterval);
     gameInterval = null;
@@ -297,17 +297,6 @@ function resetGame() {
   document.getElementById('score').innerText = `Score: ${score}`;
   draw();
 }
-
-    function resetGame() {
-      clearInterval(gameInterval);
-      gameInterval = null;
-      playfield.forEach(row => row.fill(0));
-      resetTetromino();
-      score = 0;
-      speed = 1000;
-      document.getElementById('score').innerText = `Score: ${score}`;
-      draw();
-    }
 
     function draw() {
       context.clearRect(0, 0, canvas.width, canvas.height);
