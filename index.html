@@ -141,7 +141,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
     const grid = 24;
@@ -160,7 +160,8 @@
     let gameInterval = null;
     let score = 0;
     let speed = 1000; // Initial speed in milliseconds
-    let level = 1;   // Game level to increase speed
+    let dropCounter = 0;
+    let lastTime = 0;
 
     function resetTetromino() {
       const random = Math.floor(Math.random() * tetrominoes.length);
@@ -203,7 +204,7 @@
         resetTetromino();
         if (checkGameOver()) {
           alert('Game Over!');
-          clearInterval(gameInterval);
+          cancelAnimationFrame(gameInterval);
         }
       }
     }
@@ -273,30 +274,40 @@
       return playfield[0].some(value => value);
     }
 
-function startGame() {
-  if (gameInterval) {
-    cancelAnimationFrame(gameInterval);
-    gameInterval = null;
-  } else {
-    function gameLoop() {
-      moveDown();
+    function gameLoop(time = 0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      dropCounter += deltaTime;
+
+      if (dropCounter > speed) {
+        moveDown();
+        dropCounter = 0;
+      }
+
       draw();
       gameInterval = requestAnimationFrame(gameLoop);
     }
-    gameInterval = requestAnimationFrame(gameLoop);
-  }
-}
 
-function resetGame() {
-  cancelAnimationFrame(gameInterval);
-  gameInterval = null;
-  playfield.forEach(row => row.fill(0));
-  resetTetromino();
-  score = 0;
-  speed = 1000;
-  document.getElementById('score').innerText = `Score: ${score}`;
-  draw();
-}
+    function startGame() {
+      if (gameInterval) {
+        cancelAnimationFrame(gameInterval);
+        gameInterval = null;
+      } else {
+        lastTime = 0;
+        gameInterval = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function resetGame() {
+      cancelAnimationFrame(gameInterval);
+      gameInterval = null;
+      playfield.forEach(row => row.fill(0));
+      resetTetromino();
+      score = 0;
+      speed = 1000;
+      document.getElementById('score').innerText = `Score: ${score}`;
+      draw();
+    }
 
     function draw() {
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -314,5 +325,6 @@ function resetGame() {
     resetTetromino();
     draw();
   </script>
+
 </body>
 </html>
