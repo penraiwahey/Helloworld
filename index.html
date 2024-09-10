@@ -92,6 +92,44 @@
         font-size: 18px;
       }
     }
+    @media (min-width: 601px) {
+      .container {
+        width: 400px; /* เพิ่มขนาดของ container */
+      }
+      canvas {
+        width: 300px; /* เพิ่มขนาดของ canvas */
+        height: 600px;
+      }
+      .btn {
+        font-size: 18px; /* ขยายขนาดปุ่ม */
+        padding: 12px;
+      }
+      #score {
+        font-size: 28px; /* ขยายขนาดตัวอักษรของคะแนน */
+      }
+      .next-tetromino {
+        margin-top: 30px;
+        padding: 15px;
+      }
+      .next-canvas {
+        width: 150px;
+        height: 300px;
+      }
+    }
+    /* Animation styles */
+    .falling-tetromino {
+      animation: fall 0.5s ease-in-out;
+    }
+    @keyframes fall {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -223,9 +261,26 @@ function rotateTetromino() {
   const shapeCopy = tetromino.shape.map(row => [...row]);
   const rotated = shapeCopy[0].map((_, i) => shapeCopy.map(row => row[i])).reverse();
   const originalCol = tetromino.col;
+  const originalRow = tetromino.row;
+  
   tetromino.shape = rotated;
+
   if (checkCollision()) {
+    // Move left if collides
+    tetromino.col = originalCol - 1;
+    if (!checkCollision()) return;
+
+    // Move right if collides
+    tetromino.col = originalCol + 2;
+    if (!checkCollision()) return;
+
+    // Move back to original position
     tetromino.col = originalCol;
+    tetromino.row = originalRow + 1;
+    if (!checkCollision()) return;
+
+    // Reset rotation if still colliding
+    tetromino.shape = shapeCopy;
   }
 }
 
@@ -243,6 +298,7 @@ function checkCollision() {
           playfield[row][col]
         );
       }
+      return false;
     });
   });
 }
@@ -335,4 +391,3 @@ document.addEventListener('keydown', (event) => {
 
 </body>
 </html>
-
