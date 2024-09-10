@@ -1,9 +1,279 @@
-<!doctype html><html><head></head>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Tetris Game</title> 
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9fafb;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 320px;
+    }
+    canvas {
+      background-color: #222;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .control-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .btn {
+      padding: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #3b82f6;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+    }
+    .btn:hover {
+      background-color: #2563eb;
+    }
+    .btn:active {
+      background-color: #1d4ed8;
+      transform: scale(0.98);
+    }
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    #score {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #374151;
+    }
+    @media (max-width: 600px) {
+      canvas {
+        width: 200px;
+        height: 400px;
+      }
+      .btn {
+        font-size: 14px;
+        padding: 8px;
+      }
+      #score {
+        font-size: 18px;
+      }
+    }
+  </style> 
+ </head> 
  <body> 
-  <h1> สวัสดีครับ </h1> 
-  <div>
-    This is a html example from Dcoder, 
-   <br> have fun. :) 
+  <div class="container"> 
+   <div class="control-buttons"> <button id="startButton" class="btn btn-icon"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4l12 8-12 8V4z" /> 
+     </svg> Start/Pause </button> <button id="resetButton" class="btn btn-icon bg-red-500 hover:bg-red-600"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.12 5.88a6 6 0 10-8.24 8.24M5.88 15.12a6 6 0 008.24-8.24" /> 
+     </svg> Reset </button> 
+    <div id="score" class="text-2xl font-bold text-gray-800 mt-2">
+     Score: 0
+    </div> 
+   </div> 
+   <canvas id="gameCanvas" width="240" height="480"></canvas> 
+   <div class="controls"> <button id="leftButton" class="btn btn-icon"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /> 
+     </svg> Left </button> <button id="rotateButton" class="btn btn-icon"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6V4H4z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 20H10v-8h10v8z" /> 
+     </svg> Rotate </button> <button id="rightButton" class="btn btn-icon"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /> 
+     </svg> Right </button> <button id="downButton" class="btn btn-icon"> 
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /> 
+     </svg> Down </button> 
+   </div> 
   </div> 
- 
-</body></html>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const context = canvas.getContext('2d');
+    const grid = 24;
+    const tetrominoes = [
+      [[1, 1, 1], [0, 1, 0]],  // T
+      [[1, 1], [1, 1]],        // O
+      [[1, 1, 0], [0, 1, 1]],  // S
+      [[0, 1, 1], [1, 1, 0]],  // Z
+      [[1, 0, 0], [1, 1, 1]],  // L
+      [[0, 0, 1], [1, 1, 1]],  // J
+      [[1, 1, 1, 1]]            // I
+    ];
+
+    const playfield = Array.from({ length: 20 }, () => Array(10).fill(0));
+    let tetromino = { shape: null, row: 0, col: 0 };
+    let gameInterval = null;
+    let score = 0;
+    let speed = 1000; // Initial speed in milliseconds
+    let level = 1;   // Game level to increase speed
+
+    function resetTetromino() {
+      const random = Math.floor(Math.random() * tetrominoes.length);
+      tetromino.shape = tetrominoes[random];
+      tetromino.row = 0;
+      tetromino.col = Math.floor((10 - tetromino.shape[0].length) / 2);
+    }
+
+    function drawTetromino() {
+      tetromino.shape.forEach((row, rIndex) => {
+        row.forEach((value, cIndex) => {
+          if (value) {
+            context.fillStyle = '#FF5733';
+            context.fillRect((tetromino.col + cIndex) * grid, (tetromino.row + rIndex) * grid, grid, grid);
+            context.strokeRect((tetromino.col + cIndex) * grid, (tetromino.row + rIndex) * grid, grid, grid);
+          }
+        });
+      });
+    }
+
+    function drawPlayfield() {
+      playfield.forEach((row, rIndex) => {
+        row.forEach((value, cIndex) => {
+          if (value) {
+            context.fillStyle = '#00F1A7';
+            context.fillRect(cIndex * grid, rIndex * grid, grid, grid);
+            context.strokeRect(cIndex * grid, rIndex * grid, grid, grid);
+          }
+        });
+      });
+    }
+
+    function draw() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayfield();
+      drawTetromino();
+    }
+
+    function moveDown() {
+      tetromino.row += 1;
+      if (collision()) {
+        tetromino.row -= 1;
+        placeTetromino();
+        resetTetromino();
+        if (collision()) {
+          clearInterval(gameInterval);
+          alert('Game Over!');
+        }
+        level = Math.floor(score / 1000) + 1;
+        speed = 1000 - (level - 1) * 100; // Increase speed by reducing interval
+        clearInterval(gameInterval);
+        gameInterval = setInterval(moveDown, speed);
+      }
+      draw();
+    }
+
+    function collision() {
+      return tetromino.shape.some((row, rIndex) =>
+        row.some((value, cIndex) => {
+          if (value) {
+            const newRow = tetromino.row + rIndex;
+            const newCol = tetromino.col + cIndex;
+            return newRow >= 20 || newCol < 0 || newCol >= 10 || playfield[newRow][newCol];
+          }
+          return false;
+        })
+      );
+    }
+
+    function placeTetromino() {
+      tetromino.shape.forEach((row, rIndex) =>
+        row.forEach((value, cIndex) => {
+          if (value) {
+            playfield[tetromino.row + rIndex][tetromino.col + cIndex] = 1;
+          }
+        })
+      );
+      checkLines();
+    }
+
+    function checkLines() {
+      for (let r = 0; r < 20; r++) {
+        if (playfield[r].every(cell => cell)) {
+          playfield.splice(r, 1);
+          playfield.unshift(Array(10).fill(0));
+          score += 100;
+          document.getElementById('score').innerText = `Score: ${score}`;
+        }
+      }
+    }
+
+    function startGame() {
+      resetTetromino();
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(moveDown, speed);
+      draw();
+    }
+
+    document.getElementById('leftButton').addEventListener('click', () => {
+      tetromino.col -= 1;
+      if (collision()) tetromino.col += 1;
+      draw();
+    });
+
+    document.getElementById('rightButton').addEventListener('click', () => {
+      tetromino.col += 1;
+      if (collision()) tetromino.col -= 1;
+      draw();
+    });
+
+    document.getElementById('downButton').addEventListener('click', () => moveDown());
+
+    document.getElementById('rotateButton').addEventListener('click', () => {
+      tetromino.shape = tetromino.shape[0].map((_, i) =>
+        tetromino.shape.map(row => row[i]).reverse()
+      );
+      if (collision()) {
+        tetromino.shape = tetromino.shape[0].map((_, i) =>
+          tetromino.shape.map(row => row[i])
+        );
+      }
+      draw();
+    });
+
+    document.getElementById('startButton').addEventListener('click', () => startGame());
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      clearInterval(gameInterval);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      playfield.forEach(row => row.fill(0));
+      score = 0;
+      document.getElementById('score').innerText = `Score: ${score}`;
+      level = 1;
+      speed = 1000;
+      startGame();
+    });
+
+    draw();
+  </script> 
+ </body>
+</html>
