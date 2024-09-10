@@ -274,16 +274,29 @@
     }
 
     function startGame() {
-      if (gameInterval) {
-        clearInterval(gameInterval);
-        gameInterval = null;
-      } else {
-        gameInterval = setInterval(() => {
-          moveDown();
-          draw();
-        }, speed);
-      }
+  if (gameInterval) {
+    cancelAnimationFrame(gameInterval);
+    gameInterval = null;
+  } else {
+    function gameLoop() {
+      moveDown();
+      draw();
+      gameInterval = requestAnimationFrame(gameLoop);
     }
+    gameInterval = requestAnimationFrame(gameLoop);
+  }
+}
+
+function resetGame() {
+  cancelAnimationFrame(gameInterval);
+  gameInterval = null;
+  playfield.forEach(row => row.fill(0));
+  resetTetromino();
+  score = 0;
+  speed = 1000;
+  document.getElementById('score').innerText = `Score: ${score}`;
+  draw();
+}
 
     function resetGame() {
       clearInterval(gameInterval);
